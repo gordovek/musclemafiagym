@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<!-- Favicon estándar para navegadores (.ico o .png) -->
+<link rel="icon" type="image/png" sizes="32x32" href="favicon2.png">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+<!-- Para dispositivos móviles Apple (iOS) -->
+<link rel="apple-touch-icon" sizes="180x180" href="favicon2.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>MUSCLE MAFIA GYM</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; }
+    body { font-family: 'Inter', sans-serif; }
+    .font-display { font-family: 'Barlow Condensed', sans-serif; }
+    .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+
+    /* Estilo para reducir la opacidad del placeholder de los inputs */
+    input::placeholder {
+      color: #a1a1aa;
+      opacity: 0.4;
+    }
+
+    /* Tab mode underline animation */
+    .tab-active {
+      color: #FFD600;
+      border-bottom: 2px solid #FFD600;
+    }
+    .tab-inactive {
+      color: #52525b;
+      border-bottom: 2px solid transparent;
+    }
+
+    /* Nav active */
+    .nav-active { color: #FFD600; }
+    .nav-inactive { color: #52525b; }
+
+    /* Input focus */
+    input:focus { border-color: #FFD600; outline: none; }
+
+    /* Plan card hover */
+    .plan-card:hover .plan-img { transform: scale(1.05); }
+
+    /* Stats */
+    .stat-accent { color: #FFD600; }
+
+    /* QR corner marks */
+    .qr-corner { position: absolute; width: 16px; height: 16px; border: 2px solid #FFD600; }
+
+    /* Animación para el Loader */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* EFECTO GLITCH EN LOGO LOADER */
+    @keyframes glitch-effect {
+      0% { transform: translate(0) skew(0deg); filter: none; }
+      15% { transform: translate(-3px, 1px) skew(-3deg); filter: drop-shadow(3px -1px 0 #FFD600) drop-shadow(-3px 1px 0 #ef4444); }
+      17% { transform: translate(0) skew(0deg); filter: none; }
+      40% { transform: translate(4px, -2px) skew(4deg); filter: drop-shadow(-3px -1px 0 #FFD600); }
+      43% { transform: translate(0) skew(0deg); filter: none; }
+      65% { transform: translate(-2px, 2px) skew(-2deg); filter: drop-shadow(3px 1px 0 #ef4444); }
+      67% { transform: translate(0) skew(0deg); filter: none; }
+      85% { transform: translate(3px, -1px) skew(2deg); filter: drop-shadow(-2px 2px 0 #FFD600) drop-shadow(2px -1px 0 #ef4444); }
+      88% { transform: translate(0) skew(0deg); filter: none; }
+      100% { transform: translate(0) skew(0deg); filter: none; }
+    }
+
+    .glitch-logo {
+      animation: glitch-effect 1.2s infinite steps(1);
+    }
+  </style>
+</head>
+
+<body style="background:#050505; margin:0; display:flex; justify-content:center; align-items:center; min-height:100svh;">
+
+  <!-- PANTALLA DE CARGA INICIAL -->
+  <div id="loader-screen" style="position:fixed; inset:0; background:#050505; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; transition:opacity 0.3s ease;">
+    <img src="LOGOALT.png" alt="Muscle Mafia Logo" class="glitch-logo" style="height:48px; width:auto; margin-bottom:20px; object-fit:contain;">
+    <div style="width:28px; height:28px; border:3px solid #27272a; border-top-color:#FFD600; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+  </div>
+
+  <div style="width:100%; max-width:448px; background:#0a0a0a; border:1px solid #27272a; display:flex; flex-direction:column; position:relative; overflow:hidden; height:100svh; max-height:844px;">
+
+    <!-- HEADER -->
+    <header style="background:#0a0a0a; border-bottom:1px solid #3f3f46; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:12px 20px; flex-shrink:0; z-index:10;">
+      <div></div>
+      <!-- LOGO EN IMAGEN -->
+      <div style="display:flex; justify-content:center; align-items:center;">
+        <button onclick="switchTab('inicio')" style="background:none; border:none; padding:0; cursor:pointer;">
+          <img src="LOGOALT.png" alt="Muscle Mafia Logo" style="height:32px; width:auto; object-fit:contain; display:block;">
+        </button>
+      </div>
+      <div style="display:flex; justify-content:flex-end; align-items:center; gap:6px;" id="header-right">
+        <span style="font-size:10px; color:#52525b; text-transform:uppercase; letter-spacing:0.12em;">Sin sesión</span>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main style="flex:1; overflow-y:auto; padding-bottom:80px;" id="main-content">
+
+      <!-- INICIO -->
+      <section id="section-inicio">
+
+        <!-- HERO -->
+        <div style="position:relative; height:288px; overflow:hidden;">
+          <img src="cover.jpg"
+               alt="Muscle Mafia Gym"
+               style="width:100%; height:100%; object-fit:cover;">
+          <div style="position:absolute; inset:0; background:linear-gradient(to bottom, rgba(10,10,10,0.2) 0%, rgba(10,10,10,0.7) 60%, rgba(10,10,10,1) 100%);"></div>
+          <!-- diagonal badge -->
+          <div style="position:absolute; top:24px; left:-16px; width:160px; height:28px; background:#FFD600; transform:skewX(-12deg); display:flex; align-items:center; padding-left:32px;">
+            <span class="font-display" style="font-size:10px; font-weight:900; letter-spacing:0.2em; color:#0a0a0a; text-transform:uppercase; transform:skewX(12deg);">Sin Permanencia</span>
+          </div>
+          <div style="position:absolute; bottom:24px; left:24px; right:24px;">
+            <p class="font-display" style="font-size:11px; font-weight:600; letter-spacing:0.3em; text-transform:uppercase; color:#FFD600; margin:0 0 4px;">Entrena Sin Límites</p>
+            <h1 class="font-display" style="font-size:3.2rem; font-weight:900; text-transform:uppercase; line-height:1; color:#fff; margin:0;">TRANSFORMA<br>TU CUERPO</h1>
+          </div>
+        </div>
+
+        <!-- CTA ROW -->
+        <div id="cta-row" style="padding:20px 24px; border-bottom:1px solid rgba(63,63,70,0.6);">
+          <div style="display:flex; gap:10px;">
+            <button onclick="irARegistro()" class="font-display" style="flex:1; padding:10px; font-weight:900; font-size:0.85rem; letter-spacing:0.12em; background:#FFD600; color:#0a0a0a; border:none; cursor:pointer; text-transform:uppercase; transition:opacity 0.15s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
+              REGÍSTRATE
+            </button>
+            <button onclick="irALogin()" class="font-display" style="padding:10px 20px; font-weight:900; font-size:0.85rem; letter-spacing:0.12em; background:transparent; color:#d4d4d8; border:1px solid #52525b; cursor:pointer; text-transform:uppercase; transition:border-color 0.15s;" onmouseover="this.style.borderColor='#a1a1aa'" onmouseout="this.style.borderColor='#52525b'">
+              ACCEDER
+            </button>
+          </div>
+        </div>
+
+        <!-- PLANES -->
+        <div style="padding:24px 24px 16px;">
+          <h2 class="font-display" style="font-size:1.6rem; font-weight:900; text-transform:uppercase; color:#fff; margin:0 0 16px; letter-spacing:-0.02em;">Planes & Membresías</h2>
+
+          <!-- VIP -->
+          <div class="plan-card" style="position:relative; overflow:hidden; border:1px solid #3f3f46; margin-bottom:16px;">
+            <div style="height:144px; overflow:hidden; position:relative;">
+              <img class="plan-img" src="cover1.jpg"
+                   alt="Plan VIP" style="width:100%; height:100%; object-fit:cover; opacity:0.6; transition:transform 0.5s;">
+              <div style="position:absolute; inset:0; background:linear-gradient(to right, rgba(10,10,10,0.95) 40%, transparent);"></div>
+            </div>
+            <div style="position:absolute; top:12px; right:12px; background:#FFD600; padding:2px 10px;">
+              <span class="font-display" style="font-size:9px; font-weight:900; letter-spacing:0.15em; text-transform:uppercase; color:#0a0a0a;">Más Popular</span>
+            </div>
+            <div style="position:absolute; top:16px; left:20px;">
+              <p class="font-display" style="font-size:11px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; color:#FFD600; margin:0 0 2px;">Plan Mensual</p>
+              <h3 class="font-display" style="font-size:2rem; font-weight:900; text-transform:uppercase; color:#fff; margin:0; line-height:1;">ELITE</h3>
+              <p style="font-size:11px; color:#a1a1aa; margin:4px 0 0;">Acceso libre 24/7 · QR digital</p>
+            </div>
+            <div style="padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid #3f3f46; background:#0f0f0f;">
+              <div>
+                <span class="font-display" style="font-size:2.5rem; font-weight:900; color:#fff;">$499</span>
+                <span style="font-size:11px; color:#71717a; margin-left:4px;">/mes</span>
+              </div>
+              <button onclick="irARegistro()" class="font-display" style="padding:8px 20px; font-weight:900; font-size:11px; letter-spacing:0.12em; background:#FFD600; color:#0a0a0a; border:none; cursor:pointer; text-transform:uppercase;">
+                INSCRIBIRME →
+              </button>
+            </div>
+          </div>
+
+          <!-- VISITA -->
+          <div class="plan-card" style="position:relative; border:1px solid #3f3f46; display:flex; overflow:hidden;">
+            <div style="width:112px; flex-shrink:0; overflow:hidden;">
+              <img class="plan-img" src="cover3.jpg"
+                   alt="Visita individual" style="width:100%; height:100%; object-fit:cover; opacity:0.5; transition:transform 0.5s;">
+            </div>
+            <div style="flex:1; padding:16px; display:flex; flex-direction:column; justify-content:space-between; background:#0f0f0f;">
+              <div>
+                <p class="font-display" style="font-size:9px; letter-spacing:0.15em; text-transform:uppercase; color:#FFD600; margin:0 0 2px;">Sin Compromiso</p>
+                <h3 class="font-display" style="font-size:1.3rem; font-weight:900; text-transform:uppercase; color:#fff; margin:0;">Visita Individual</h3>
+                <p style="font-size:11px; color:#71717a; margin:2px 0 0;">Entrena un día</p>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px;">
+                <div>
+                  <span class="font-display" style="font-size:1.6rem; font-weight:900; color:#fff;">$80</span>
+                  <span style="font-size:11px; color:#71717a; margin-left:4px;">/día</span>
+                </div>
+                <button onclick="irARegistro()" class="font-display" style="padding:6px 12px; font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; background:transparent; color:#d4d4d8; border:1px solid #52525b; cursor:pointer;">
+                  COMPRAR
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS BAR -->
+        <div style="margin:0 24px 24px; border:1px solid #3f3f46; background:#0f0f0f; display:grid; grid-template-columns:1fr 1fr 1fr;">
+          <div style="padding:16px; text-align:center; border-right:1px solid #3f3f46;">
+            <div class="font-display" style="font-size:1.5rem; font-weight:900; color:#FFD600;">24/7</div>
+            <div style="font-size:10px; color:#71717a; text-transform:uppercase; letter-spacing:0.1em; margin-top:2px;">Acceso</div>
+          </div>
+          <div style="padding:16px; text-align:center; border-right:1px solid #3f3f46;">
+            <div class="font-display" style="font-size:1.5rem; font-weight:900; color:#fff;">+50</div>
+            <div style="font-size:10px; color:#71717a; text-transform:uppercase; letter-spacing:0.1em; margin-top:2px;">Equipos</div>
+          </div>
+          <div style="padding:16px; text-align:center;">
+            <div class="font-display" style="font-size:1.5rem; font-weight:900; color:#fff;">100%</div>
+            <div style="font-size:10px; color:#71717a; text-transform:uppercase; letter-spacing:0.1em; margin-top:2px;">Resultados</div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ACCESO QR -->
+      <section id="section-acceso" style="display:none; flex-direction:column; align-items:center; padding:32px 24px; gap:24px;">
+
+        <div style="text-align:center;">
+          <p class="font-display" style="font-size:11px; letter-spacing:0.3em; text-transform:uppercase; color:#FFD600; margin:0 0 4px;">Muscle Mafia</p>
+          <h2 class="font-display" style="font-size:2.5rem; font-weight:900; text-transform:uppercase; color:#fff; margin:0; letter-spacing:-0.02em;">Acceso al Gym</h2>
+          <p style="font-size:13px; color:#71717a; margin:4px 0 0;">Presenta este código en la entrada</p>
+        </div>
+
+        <!-- QR CARD -->
+        <div style="width:100%; border:1px solid #3f3f46; background:#0f0f0f;">
+          <div id="qr-status-strip" style="height:4px; background:#ef4444;"></div>
+          <div style="padding:24px; display:flex; flex-direction:column; align-items:center; gap:20px;">
+
+            <!-- QR box -->
+            <div style="position:relative; background:#fff; padding:16px;">
+              <div id="qrcode-container" style="width:160px; height:160px; display:flex; align-items:center; justify-content:center; background:#f4f4f5;">
+                <span style="font-size:11px; color:#71717a; text-align:center; padding:8px;">Inicia sesión<br>para ver tu QR</span>
+              </div>
+              <!-- corner marks -->
+              <div class="qr-corner" style="top:0; left:0;"></div>
+              <div class="qr-corner" style="top:0; right:0;"></div>
+              <div class="qr-corner" style="bottom:0; left:0;"></div>
+              <div class="qr-corner" style="bottom:0; right:0;"></div>
+            </div>
+
+            <!-- user info -->
+            <div style="text-align:center;">
+              <p class="font-display" id="qr-user-name" style="font-size:1.3rem; font-weight:900; text-transform:uppercase; color:#fff; margin:0; letter-spacing:-0.01em;">Sin Sesión</p>
+              <p id="qr-user-id" style="font-size:11px; color:#71717a; font-family:monospace; margin:2px 0 0;">ID: ---</p>
+            </div>
+
+            <!-- badge -->
+            <div id="qr-badge" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2);">
+              <div id="qr-badge-dot" style="width:6px; height:6px; border-radius:50%; background:#ef4444; flex-shrink:0;"></div>
+              <span class="font-display" id="qr-badge-text" style="font-size:0.85rem; font-weight:900; letter-spacing:0.12em; text-transform:uppercase; color:#ef4444;">Acceso Denegado</span>
+            </div>
+          </div>
+
+          <!-- footer -->
+          <div id="qr-footer" style="display:none; padding:12px 24px; border-top:1px solid #3f3f46; display:grid; grid-template-columns:1fr 1fr;">
+            <div>
+              <p style="font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:#71717a; margin:0 0 2px;">Plan</p>
+              <p style="font-size:12px; font-weight:600; color:#d4d4d8; margin:0;">Mensual ELITE</p>
+            </div>
+            <div id="qr-footer-venc" style="text-align:right; display:none;">
+              <p style="font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:#71717a; margin:0 0 2px;">Vencimiento</p>
+              <p id="qr-venc-text" style="font-size:12px; font-weight:600; color:#d4d4d8; margin:0;"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- instrucciones -->
+        <div style="width:100%;">
+          <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:8px;">
+            <span class="font-display" style="font-weight:900; color:#3f3f46; font-size:0.85rem; flex-shrink:0;">01</span>
+            <span style="font-size:12px; color:#71717a;">Muestra el código al personal de entrada</span>
+          </div>
+          <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:8px;">
+            <span class="font-display" style="font-weight:900; color:#3f3f46; font-size:0.85rem; flex-shrink:0;">02</span>
+            <span style="font-size:12px; color:#71717a;">Membresía válida por 30 días desde el pago</span>
+          </div>
+          <div style="display:flex; align-items:flex-start; gap:12px;">
+            <span class="font-display" style="font-weight:900; color:#3f3f46; font-size:0.85rem; flex-shrink:0;">03</span>
+            <span style="font-size:12px; color:#71717a;">El código es personal e intransferible</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- PERFIL -->
+      <section id="section-perfil" style="display:none; padding:24px;">
+
+        <!-- AUTH FORM (sin sesión) -->
+        <div id="auth-block">
+          <p class="font-display" style="font-size:11px; letter-spacing:0.3em; text-transform:uppercase; color:#FFD600; margin:0 0 4px;">Muscle Mafia</p>
+          <h2 class="font-display" id="auth-title" style="font-size:2.5rem; font-weight:900; text-transform:uppercase; color:#fff; margin:0 0 24px; letter-spacing:-0.02em;">Iniciar Sesión</h2>
+
+          <!-- tabs -->
+          <div style="display:flex; border-bottom:1px solid #3f3f46; margin-bottom:20px;">
+            <button type="button" id="tab-login" onclick="toggleAuthMode('login')" class="font-display tab-active" style="padding-bottom:10px; margin-right:24px; font-size:0.85rem; font-weight:900; letter-spacing:0.12em; text-transform:uppercase; background:none; border:none; border-bottom:2px solid #FFD600; cursor:pointer; color:#FFD600;">Acceder</button>
+            <button type="button" id="tab-register" onclick="toggleAuthMode('register')" class="font-display tab-inactive" style="padding-bottom:10px; font-size:0.85rem; font-weight:900; letter-spacing:0.12em; text-transform:uppercase; background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; color:#52525b;">Registro</button>
+          </div>
+
+          <!-- FORMULARIO DE AUTENTICACIÓN -->
+          <form id="auth-form" onsubmit="event.preventDefault(); ejecutarAuth();" style="display:flex; flex-direction:column; gap:12px;">
+            <div id="name-group" style="display:none;">
+              <label style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:#52525b; display:block; margin-bottom:6px;">Nombre Completo</label>
+              <input type="text" id="auth-name" placeholder="Ej. Carlos López García"
+                style="width:100%; box-sizing:border-box; background:#0f0f0f; border:1px solid #3f3f46; padding:10px 12px; font-size:13px; color:#f4f4f5; font-family:'Inter',sans-serif; transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='#FFD600'" onblur="this.style.borderColor='#3f3f46'">
+            </div>
+            <div>
+              <label style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:#52525b; display:block; margin-bottom:6px;">Correo Electrónico</label>
+              <input type="email" id="auth-email" placeholder="usuario@correo.com"
+                style="width:100%; box-sizing:border-box; background:#0f0f0f; border:1px solid #3f3f46; padding:10px 12px; font-size:13px; color:#f4f4f5; font-family:'Inter',sans-serif; transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='#FFD600'" onblur="this.style.borderColor='#3f3f46'">
+            </div>
+            <div>
+              <label style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:#52525b; display:block; margin-bottom:6px;">Contraseña</label>
+              <input type="password" id="auth-password" placeholder="••••••••"
+                style="width:100%; box-sizing:border-box; background:#0f0f0f; border:1px solid #3f3f46; padding:10px 12px; font-size:13px; color:#f4f4f5; font-family:'Inter',sans-serif; transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='#FFD600'" onblur="this.style.borderColor='#3f3f46'">
+            </div>
+            <div id="auth-error" style="display:none; font-size:12px; color:#f87171; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.2); padding:8px 12px;"></div>
+            <button id="btn-submit" type="submit" class="font-display"
+              style="width:100%; padding:12px; font-weight:900; font-size:0.85rem; letter-spacing:0.12em; text-transform:uppercase; background:#FFD600; color:#0a0a0a; border:none; cursor:pointer; transition:opacity 0.15s;">
+              INICIAR SESIÓN
+            </button>
+          </form>
+
+          <!-- deco con estilo Muscle Mafia -->
+          <div style="border-top:1px solid #3f3f46; margin-top:24px; padding-top:20px; display:flex; align-items:center; gap:16px;">
+            <img src="CLUBELITE.jpg"
+                 alt="Gym" style="width:80px; height:56px; object-fit:cover; opacity:1; flex-shrink:0;">
+            <p class="font-display" style="font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:#52525b; line-height:1.4; margin:0;">ÚNETE AL CLUB ELITE DE MUSCLEMAFIA GYM Y FORJA TU DISCIPLINA AQUI. SIN EXCUSAS, SOLO RESULTADOS.</p>
+          </div>
+        </div>
+
+        <!-- PERFIL LOGUEADO -->
+        <div id="logged-block" style="display:none;">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px;">
+            <h2 class="font-display" style="font-size:2.5rem; font-weight:900; text-transform:uppercase; color:#fff; margin:0; letter-spacing:-0.02em;">Mi Perfil</h2>
+            <div id="profile-status-badge" style="display:flex; align-items:center; gap:6px;">
+              <div id="profile-status-dot" style="width:6px; height:6px; border-radius:50%; background:#ef4444;"></div>
+              <span id="profile-status-text" class="font-display" style="font-size:12px; font-weight:600; color:#ef4444;">Inactivo</span>
+            </div>
+          </div>
+
+          <!-- user card -->
+          <div style="border:1px solid #3f3f46; background:#0f0f0f; margin-bottom:16px;">
+            <div style="height:4px; background:#FFD600;"></div>
+            <div style="padding:20px; display:grid; grid-template-columns:auto 1fr; gap:16px; align-items:start;">
+              <div id="profile-avatar" class="font-display" style="width:56px; height:56px; background:#FFD600; color:#0a0a0a; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:900;"></div>
+              <div>
+                <p id="profile-name" class="font-display" style="font-size:1.15rem; font-weight:900; text-transform:uppercase; color:#fff; margin:0; letter-spacing:-0.01em;"></p>
+                <p id="profile-email" style="font-size:12px; color:#71717a; margin:2px 0 0;"></p>
+                <p id="profile-id" style="font-size:10px; color:#3f3f46; font-family:monospace; margin:4px 0 0;"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- payment -->
+          <div style="border:1px solid #3f3f46; background:#0f0f0f; margin-bottom:16px;">
+            <div style="padding:12px 20px; border-bottom:1px solid #3f3f46; display:flex; align-items:center; gap:8px;">
+              <svg viewBox="0 0 24 24" fill="#FFD600" width="16" height="16"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 4v8h16V8H4zm2 4h4v2H6v-2zm6 0h4v2h-4v-2z"/></svg>
+              <span class="font-display" style="font-size:12px; font-weight:900; letter-spacing:0.12em; text-transform:uppercase; color:#FFD600;">Pago por Transferencia — $499/mes</span>
+            </div>
+            <div style="padding:20px; display:flex; flex-direction:column; gap:12px;">
+              <div>
+                <p style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:#52525b; margin:0 0 6px;">CLABE Interbancaria</p>
+                <div style="display:flex; align-items:center; gap:12px; background:#0a0a0a; border:1px solid #3f3f46; padding:10px 12px;">
+                  <span style="flex:1; font-family:monospace; font-size:13px; color:#e4e4e7; letter-spacing:0.08em;">6461 8015 7000 1234 56</span>
+                  <button id="copy-btn" onclick="copiarClabe()" class="font-display" style="font-size:11px; font-weight:900; letter-spacing:0.08em; text-transform:uppercase; background:#FFD600; color:#0a0a0a; border:none; padding:6px 12px; cursor:pointer; transition:background 0.2s;">COPIAR</button>
+                </div>
+              </div>
+              <button onclick="enviarWhatsApp()" class="font-display" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; font-weight:900; font-size:0.85rem; letter-spacing:0.12em; text-transform:uppercase; background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.2); color:#22c55e; cursor:pointer;">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                ENVIAR COMPROBANTE
+              </button>
+            </div>
+          </div>
+
+          <button onclick="cerrarSesion()" class="font-display" style="width:100%; padding:10px; font-weight:900; font-size:0.85rem; letter-spacing:0.12em; text-transform:uppercase; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.15); color:#ef4444; cursor:pointer;">
+            CERRAR SESIÓN
+          </button>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- NAV -->
+    <nav style="position:absolute; bottom:0; left:0; right:0; background:#0a0a0a; border-top:1px solid #3f3f46; padding-top:12px; padding-bottom:max(12px,env(safe-area-inset-bottom)); display:flex; justify-content:space-around; align-items:center; z-index:20;">
+      <button onclick="switchTab('inicio')" id="nav-inicio" style="display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; cursor:pointer; color:#FFD600; transition:color 0.2s;">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span class="font-display" style="font-size:9px; font-weight:700; letter-spacing:0.15em;">INICIO</span>
+      </button>
+      <button onclick="switchTab('acceso')" id="nav-acceso" style="display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; cursor:pointer; color:#52525b; transition:color 0.2s;">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM13 13h2v2h-2zM15 15h2v2h-2zM13 17h2v2h-2zM17 13h2v2h-2zM19 15h2v2h-2zM17 17h2v2h-2zM19 19h2v2h-2zM15 19h2v2h-2zM13 21h2v-2h2v2h2v-2h2v-4h-4v-2h-2v2h-2v4z"/></svg>
+        <span class="font-display" style="font-size:9px; font-weight:700; letter-spacing:0.15em;">ACCESO</span>
+      </button>
+      <button onclick="switchTab('perfil')" id="nav-perfil" style="display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; cursor:pointer; color:#52525b; transition:color 0.2s;">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        <span class="font-display" style="font-size:9px; font-weight:700; letter-spacing:0.15em;">PERFIL</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://ywiormfjngrbkatruyya.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3aW9ybWZqbmdyYmthdHJ1eXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwODYwNDAsImV4cCI6MjEwMjY2MjA0MH0.Y9JEA2UjLRBt9rib6e9a_UcFL_tai1P5EFmm03ghwzk";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentTab = 'inicio';
+    let currentMode = 'login';
+    let currentProfile = null;
+
+    function cap(str) {
+      if (!str) return '';
+      return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    }
+
+    function fmtDate(d) {
+      return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    }
+
+    function hasAccess(p) {
+      if (!p || !p.estado_pago) return false;
+      if (!p.fecha_vencimiento) return true;
+      return new Date(p.fecha_vencimiento) >= new Date();
+    }
+
+    // ── TABS ────────────────────────────────────────────────────────────────
+    function switchTab(tab) {
+      currentTab = tab;
+      ['inicio','acceso','perfil'].forEach(t => {
+        document.getElementById('section-' + t).style.display = 'none';
+        const btn = document.getElementById('nav-' + t);
+        btn.style.color = '#52525b';
+      });
+      const sec = document.getElementById('section-' + tab);
+      sec.style.display = (tab === 'acceso') ? 'flex' : 'block';
+      document.getElementById('nav-' + tab).style.color = '#FFD600';
+    }
+
+    // ── AUTH MODE ───────────────────────────────────────────────────────────
+    function toggleAuthMode(mode) {
+      currentMode = mode;
+      const nameGroup = document.getElementById('name-group');
+      const title = document.getElementById('auth-title');
+      const btn = document.getElementById('btn-submit');
+      const tLogin = document.getElementById('tab-login');
+      const tReg = document.getElementById('tab-register');
+
+      if (mode === 'register') {
+        nameGroup.style.display = 'block';
+        title.textContent = 'Crear Cuenta';
+        btn.textContent = 'CREAR CUENTA';
+        tLogin.style.color = '#52525b'; tLogin.style.borderBottom = '2px solid transparent';
+        tReg.style.color = '#FFD600'; tReg.style.borderBottom = '2px solid #FFD600';
+      } else {
+        nameGroup.style.display = 'none';
+        title.textContent = 'Iniciar Sesión';
+        btn.textContent = 'INICIAR SESIÓN';
+        tReg.style.color = '#52525b'; tReg.style.borderBottom = '2px solid transparent';
+        tLogin.style.color = '#FFD600'; tLogin.style.borderBottom = '2px solid #FFD600';
+      }
+    }
+
+    function irARegistro() { switchTab('perfil'); toggleAuthMode('register'); }
+    function irALogin() { switchTab('perfil'); toggleAuthMode('login'); }
+
+    // ── AUTH ────────────────────────────────────────────────────────────────
+    async function ejecutarAuth() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value.trim();
+      const name = cap(document.getElementById('auth-name').value.trim());
+      const btn = document.getElementById('btn-submit');
+      const errEl = document.getElementById('auth-error');
+      errEl.style.display = 'none';
+
+      if (!email || !password) { showError('Ingresa tu correo y contraseña.'); return; }
+      btn.disabled = true; btn.textContent = 'PROCESANDO...'; btn.style.opacity = '0.6';
+
+      try {
+        if (currentMode === 'register') {
+          if (!name) { showError('Ingresa tu nombre completo.'); return; }
+          const { data, error } = await db.auth.signUp({ email, password });
+          if (error) throw error;
+          if (data.user) {
+            const { error: ie } = await db.from('usuarios').insert([{
+              id: data.user.id, nombre: name, email,
+              estado_pago: false,
+              fecha_emision: new Date().toISOString(),
+              fecha_vencimiento: null
+            }]);
+            if (ie) throw ie;
+          }
+        } else {
+          const { error } = await db.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+        }
+        await cargarSesion();
+      } catch(e) {
+        showError(e.message);
+      } finally {
+        btn.disabled = false; btn.style.opacity = '1';
+        toggleAuthMode(currentMode);
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('auth-error');
+      el.textContent = msg; el.style.display = 'block';
+      document.getElementById('btn-submit').disabled = false;
+      document.getElementById('btn-submit').style.opacity = '1';
+      toggleAuthMode(currentMode);
+    }
+
+    async function cargarSesion() {
+      const { data: { session } } = await db.auth.getSession();
+      if (session) {
+        const { data } = await db.from('usuarios').select('*').eq('id', session.user.id).single();
+        currentProfile = data;
+        mostrarLogueado();
+      } else {
+        currentProfile = null;
+        mostrarAnonimo();
+      }
+    }
+
+    // ── UI STATES ───────────────────────────────────────────────────────────
+    function mostrarLogueado() {
+      const p = currentProfile;
+      const active = hasAccess(p);
+      const firstName = cap(p.nombre.split(' ')[0]);
+
+      // header
+      document.getElementById('header-right').innerHTML = `
+        <div style="width:6px;height:6px;border-radius:50%;background:${active?'#22c55e':'#ef4444'};"></div>
+        <span style="font-size:12px;color:#a1a1aa;font-weight:500;">${firstName}</span>`;
+
+      // inicio CTA
+      document.getElementById('cta-row').innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${active?'#22c55e':'#ef4444'};flex-shrink:0;"></div>
+          <p style="font-size:13px;color:#a1a1aa;flex:1;margin:0;">Bienvenido, <span style="color:#fff;font-weight:600;">${firstName}</span></p>
+          <button onclick="switchTab('acceso')" class="font-display" style="font-size:11px;font-weight:900;letter-spacing:0.12em;padding:8px 16px;background:#FFD600;color:#0a0a0a;border:none;cursor:pointer;">VER QR →</button>
+        </div>`;
+
+      // perfil
+      document.getElementById('auth-block').style.display = 'none';
+      document.getElementById('logged-block').style.display = 'block';
+      document.getElementById('profile-avatar').textContent = cap(p.nombre.charAt(0));
+      document.getElementById('profile-name').textContent = cap(p.nombre);
+      document.getElementById('profile-email').textContent = p.email;
+      document.getElementById('profile-id').textContent = 'ID: ' + p.id.substring(0,16) + '…';
+      document.getElementById('profile-status-dot').style.background = active ? '#22c55e' : '#ef4444';
+      document.getElementById('profile-status-text').style.color = active ? '#22c55e' : '#ef4444';
+      document.getElementById('profile-status-text').textContent = active ? 'Activo' : 'Inactivo';
+
+      actualizarQR();
+    }
+
+    function mostrarAnonimo() {
+      document.getElementById('header-right').innerHTML = `<span style="font-size:10px;color:#52525b;text-transform:uppercase;letter-spacing:0.12em;">Sin sesión</span>`;
+      document.getElementById('cta-row').innerHTML = `
+        <div style="display:flex;gap:10px;">
+          <button onclick="irARegistro()" class="font-display" style="flex:1;padding:10px;font-weight:900;font-size:0.85rem;letter-spacing:0.12em;background:#FFD600;color:#0a0a0a;border:none;cursor:pointer;text-transform:uppercase;">REGÍSTRATE</button>
+          <button onclick="irALogin()" class="font-display" style="padding:10px 20px;font-weight:900;font-size:0.85rem;letter-spacing:0.12em;background:transparent;color:#d4d4d8;border:1px solid #52525b;cursor:pointer;text-transform:uppercase;">ACCEDER</button>
+        </div>`;
+      document.getElementById('auth-block').style.display = 'block';
+      document.getElementById('logged-block').style.display = 'none';
+      // reset QR
+      document.getElementById('qrcode-container').innerHTML = '<span style="font-size:11px;color:#71717a;text-align:center;padding:8px;">Inicia sesión<br>para ver tu QR</span>';
+      document.getElementById('qr-user-name').textContent = 'Sin Sesión';
+      document.getElementById('qr-user-id').textContent = 'ID: ---';
+      document.getElementById('qr-status-strip').style.background = '#ef4444';
+      document.getElementById('qr-footer').style.display = 'none';
+      setBadge(false, 'Acceso Denegado');
+    }
+
+    function setBadge(active, text) {
+      const badge = document.getElementById('qr-badge');
+      const dot = document.getElementById('qr-badge-dot');
+      const txt = document.getElementById('qr-badge-text');
+      const color = active ? '#22c55e' : '#ef4444';
+      badge.style.background = active ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)';
+      badge.style.border = `1px solid ${active ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`;
+      dot.style.background = color;
+      txt.style.color = color;
+      txt.textContent = text;
+    }
+
+    function actualizarQR() {
+      if (!currentProfile) return;
+      const p = currentProfile;
+      const active = hasAccess(p);
+      const venc = p.fecha_vencimiento ? new Date(p.fecha_vencimiento) : null;
+
+      document.getElementById('qr-user-name').textContent = cap(p.nombre);
+      document.getElementById('qr-user-id').textContent = 'ID: ' + p.id.substring(0,12) + '…';
+      document.getElementById('qr-status-strip').style.background = active ? '#22c55e' : '#ef4444';
+
+      const qrBox = document.getElementById('qrcode-container');
+      qrBox.innerHTML = '';
+      qrBox.style.width = '160px'; qrBox.style.height = '160px';
+      qrBox.style.filter = (!active) ? 'grayscale(80%) opacity(0.5)' : '';
+      new QRCode(qrBox, {
+        text: `MM-USER-${p.id}`,
+        width: 160, height: 160,
+        colorDark: active ? '#000000' : '#6b7280',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      const footerEl = document.getElementById('qr-footer');
+      footerEl.style.display = 'grid';
+      if (venc) {
+        const fv = document.getElementById('qr-footer-venc');
+        fv.style.display = 'block';
+        document.getElementById('qr-venc-text').textContent = fmtDate(venc);
+      }
+
+      const badgeText = active ? 'Acceso Permitido'
+        : (p.estado_pago && venc && venc < new Date()) ? 'Membresía Vencida' : 'Pago Pendiente';
+      setBadge(active, badgeText);
+    }
+
+    async function cerrarSesion() {
+      await db.auth.signOut();
+      currentProfile = null;
+      mostrarAnonimo();
+    }
+
+    function copiarClabe() {
+      navigator.clipboard.writeText('646180157000123456');
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'COPIADO'; btn.style.background = '#22c55e';
+      setTimeout(() => { btn.textContent = 'COPIAR'; btn.style.background = '#FFD600'; }, 2000);
+    }
+
+    function enviarWhatsApp() {
+      if (!currentProfile) return;
+      const msg = `Hola, soy ${cap(currentProfile.nombre)}. Adjunto mi comprobante de pago para la membresía.`;
+      window.open(`https://wa.me/528442818135?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    window.onload = async () => {
+      const startTime = Date.now();
+      await cargarSesion();
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 1000 - elapsedTime);
+
+      setTimeout(() => {
+        const loader = document.getElementById('loader-screen');
+        if (loader) {
+          loader.style.opacity = '0';
+          setTimeout(() => loader.remove(), 300);
+        }
+      }, remainingTime);
+    };
+  </script>
+</body>
+</html>
