@@ -51,16 +51,16 @@
       animation: glitch-effect 1.2s infinite steps(1);
     }
 
-    /* Estilos personalizados para el contenedor del scanner html5-qrcode */
+    /* Estilos personalizados para el visor de html5-qrcode */
     #reader video {
       object-fit: cover !important;
+      width: 100% !important;
+      height: 100% !important;
       border-radius: 0px !important;
-    }
-    #reader__scan_region {
-      background: transparent !important;
     }
     #reader {
       border: none !important;
+      position: relative;
     }
   </style>
 </head>
@@ -114,7 +114,7 @@
 
           <div style="display:flex; align-items:center; gap:8px; color:#a1a1aa; font-size:11px; text-transform:uppercase; letter-spacing:0.1em;" class="font-display">
             <i class="fa-solid fa-camera" style="color:#FFD600;"></i>
-            <span>Cámara Activa</span>
+            <span>Cámara Activa (Trasera)</span>
           </div>
         </div>
       </div>
@@ -133,8 +133,12 @@
             <p id="result-subtitle" style="font-size:11px; color:#71717a; margin:4px 0 0;"></p>
           </div>
 
-          <!-- USER INFO -->
+          <!-- USER INFO & RAW QR CONTENT -->
           <div style="width:100%; background:#0a0a0a; border:1px solid #3f3f46; padding:16px; box-sizing:border-box;">
+            <!-- CONTENIDO LEYDO DIRECTAMENTE DEL QR -->
+            <p style="font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:#FFD600; margin:0 0 2px; font-weight:700;">Texto Detectado en QR</p>
+            <p id="qr-raw-text" style="font-size:12px; color:#FFD600; font-family:monospace; margin:0 0 12px; word-break:break-all; background:#18181b; padding:6px 8px; border:1px dashed #3f3f46; border-radius:4px;"></p>
+
             <p style="font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:#71717a; margin:0 0 2px;">Cliente</p>
             <p id="client-name" class="font-display" style="font-size:1.3rem; font-weight:900; text-transform:uppercase; color:#fff; margin:0; letter-spacing:-0.01em;"></p>
             
@@ -165,21 +169,29 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3aW9ybWZqbmdyYmthdHJ1eXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwODYwNDAsImV4cCI6MjEwMjY2MjA0MH0.Y9JEA2UjLRBt9rib6e9a_UcFL_tai1P5EFmm03ghwzk";
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let html5QrcodeScanner = null;
+    let html5QrCode = null;
 
     function cap(str) {
       if (!str) return '';
       return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
     }
 
-    function onScanSuccess(decodedText, decodedResult) {
-      if (decodedText.startsWith("MM-USER-")) {
-        const userId = decodedText.replace("MM-USER-", "");
-        if (html5QrcodeScanner) {
-          html5QrcodeScanner.clear();
+    async function onScanSuccess(decodedText, decodedResult) {
+      // Detener escáner al detectar código
+      if (html5QrCode) {
+        try {
+          await html5QrCode.stop();
+        } catch (e) {
+          console.warn("Cámara ya detenida o no lista:", e);
         }
-        verificarCliente(userId);
       }
+
+      // Mostrar el contenido bruto del QR en pantalla
+      document.getElementById('qr-raw-text').textContent = decodedText;
+
+      // Extraer ID si cumple el formato o usar la cadena directa
+      const userId = decodedText.startsWith("MM-USER-") ? decodedText.replace("MM-USER-", "") : decodedText;
+      verificarCliente(userId);
     }
 
     async function verificarCliente(userId) {
@@ -272,12 +284,23 @@
     }
 
     function iniciarCamara() {
-      html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+      if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader");
+      }
+
+      const config = { 
         fps: 10, 
-        qrbox: { width: 180, height: 180 },
-        rememberLastUsedCamera: true
-      }, false);
-      html5QrcodeScanner.render(onScanSuccess);
+        qrbox: { width: 180, height: 180 }
+      };
+
+      // Inicia directamente la cámara trasera sin pasar por selectores de la interfaz
+      html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        onScanSuccess
+      ).catch(err => {
+        console.error("Error al iniciar la cámara predeterminada:", err);
+      });
     }
 
     window.onload = async () => {
