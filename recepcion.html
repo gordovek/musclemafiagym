@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<!-- Favicon estándar para navegadores (.ico o .png) -->
+<link rel="icon" type="image/png" sizes="32x32" href="favicon2.png">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+<!-- Para dispositivos móviles Apple (iOS) -->
+<link rel="apple-touch-icon" sizes="180x180" href="favicon2.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>MUSCLE MAFIA GYM - Recepción</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- FontAwesome e Html5Qrcode Scanner -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; }
+    body { font-family: 'Inter', sans-serif; }
+    .font-display { font-family: 'Barlow Condensed', sans-serif; }
+    
+    /* QR Corner Marks */
+    .qr-corner { position: absolute; width: 16px; height: 16px; border: 2px solid #FFD600; pointer-events: none; z-index: 20; }
+
+    /* Animación para el Loader */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* EFECTO GLITCH EN LOGO LOADER */
+    @keyframes glitch-effect {
+      0% { transform: translate(0) skew(0deg); filter: none; }
+      15% { transform: translate(-3px, 1px) skew(-3deg); filter: drop-shadow(3px -1px 0 #FFD600) drop-shadow(-3px 1px 0 #ef4444); }
+      17% { transform: translate(0) skew(0deg); filter: none; }
+      40% { transform: translate(4px, -2px) skew(4deg); filter: drop-shadow(-3px -1px 0 #FFD600); }
+      43% { transform: translate(0) skew(0deg); filter: none; }
+      65% { transform: translate(-2px, 2px) skew(-2deg); filter: drop-shadow(3px 1px 0 #ef4444); }
+      67% { transform: translate(0) skew(0deg); filter: none; }
+      85% { transform: translate(3px, -1px) skew(2deg); filter: drop-shadow(-2px 2px 0 #FFD600) drop-shadow(2px -1px 0 #ef4444); }
+      88% { transform: translate(0) skew(0deg); filter: none; }
+      100% { transform: translate(0) skew(0deg); filter: none; }
+    }
+
+    .glitch-logo {
+      animation: glitch-effect 1.2s infinite steps(1);
+    }
+
+    /* Estilos personalizados para el visor de html5-qrcode */
+    #reader video {
+      object-fit: cover !important;
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 0px !important;
+    }
+    #reader {
+      border: none !important;
+      position: relative;
+    }
+  </style>
+</head>
+
+<body style="background:#050505; margin:0; display:flex; justify-content:center; align-items:center; min-height:100svh;">
+
+  <!-- PANTALLA DE CARGA INICIAL -->
+  <div id="loader-screen" style="position:fixed; inset:0; background:#050505; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; transition:opacity 0.3s ease;">
+    <img src="LOGOALT.png" alt="Muscle Mafia Logo" class="glitch-logo" style="height:48px; width:auto; margin-bottom:20px; object-fit:contain;">
+    <div style="width:28px; height:28px; border:3px solid #27272a; border-top-color:#FFD600; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+  </div>
+
+  <div style="width:100%; max-width:448px; background:#0a0a0a; border:1px solid #27272a; display:flex; flex-direction:column; position:relative; overflow:hidden; height:100svh; max-height:844px;">
+
+    <!-- HEADER -->
+    <header style="background:#0a0a0a; border-bottom:1px solid #3f3f46; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:12px 20px; flex-shrink:0; z-index:10;">
+      <div></div>
+      <!-- LOGO EN IMAGEN -->
+      <div style="display:flex; justify-content:center; align-items:center;">
+        <img src="LOGOALT.png" alt="Muscle Mafia Logo" style="height:32px; width:auto; object-fit:contain; display:block;">
+      </div>
+      <div style="display:flex; justify-content:flex-end; align-items:center; gap:6px;">
+        <span class="font-display" style="font-size:11px; color:#FFD600; text-transform:uppercase; letter-spacing:0.12em; font-weight:700;">Recepción</span>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main style="flex:1; overflow-y:auto; padding:24px;" id="main-content">
+
+      <!-- ENCABEZADO TÍTULO -->
+      <div style="text-align:center; margin-bottom:20px;">
+        <p class="font-display" style="font-size:11px; letter-spacing:0.3em; text-transform:uppercase; color:#FFD600; margin:0 0 4px;">Control de Acceso</p>
+        <h2 class="font-display" style="font-size:2.2rem; font-weight:900; text-transform:uppercase; color:#fff; margin:0; letter-spacing:-0.02em;">Validar Código</h2>
+        <p style="font-size:12px; color:#71717a; margin:4px 0 0;">Escanea el código QR del cliente para verificar acceso</p>
+      </div>
+
+      <!-- VISOR DE CÁMARA (ESTILO DEMO) -->
+      <div id="scanner-wrapper" style="width:100%; border:1px solid #3f3f46; background:#0f0f0f; margin-bottom:20px;">
+        <div style="height:4px; background:#FFD600;"></div>
+        <div style="padding:20px; display:flex; flex-direction:column; align-items:center; gap:16px;">
+          
+          <!-- Box con esquinas amarillas e iluminación visual de QR -->
+          <div style="position:relative; background:#000; padding:4px; width:100%; max-width:240px; border:1px solid #27272a;">
+            <div id="reader" style="width:100%; min-height:220px; background:#000;"></div>
+            <!-- Corner marks -->
+            <div class="qr-corner" style="top:0; left:0;"></div>
+            <div class="qr-corner" style="top:0; right:0;"></div>
+            <div class="qr-corner" style="bottom:0; left:0;"></div>
+            <div class="qr-corner" style="bottom:0; right:0;"></div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:8px; color:#a1a1aa; font-size:11px; text-transform:uppercase; letter-spacing:0.1em;" class="font-display">
+            <i class="fa-solid fa-camera" style="color:#FFD600;"></i>
+            <span>Cámara Activa (Trasera)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTADO DE LA VALIDACIÓN -->
+      <div id="result-card" style="display:none; width:100%; border:1px solid #3f3f46; background:#0f0f0f;">
+        <div id="result-status-strip" style="height:4px; background:#ef4444;"></div>
+        <div style="padding:24px; display:flex; flex-direction:column; align-items:center; gap:20px;">
+          
+          <!-- ICONO -->
+          <div id="result-icon" style="font-size:3rem;"></div>
+
+          <!-- STATUS TEXT -->
+          <div style="text-align:center;">
+            <h3 id="result-status" class="font-display" style="font-size:2rem; font-weight:900; text-transform:uppercase; margin:0; line-height:1;"></h3>
+            <p id="result-subtitle" style="font-size:11px; color:#71717a; margin:4px 0 0;"></p>
+          </div>
+
+          <!-- USER INFO & RAW QR CONTENT -->
+          <div style="width:100%; background:#0a0a0a; border:1px solid #3f3f46; padding:16px; box-sizing:border-box;">
+            <!-- CONTENIDO LEYDO DIRECTAMENTE DEL QR -->
+            <p style="font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:#FFD600; margin:0 0 2px; font-weight:700;">Texto Detectado en QR</p>
+            <p id="qr-raw-text" style="font-size:12px; color:#FFD600; font-family:monospace; margin:0 0 12px; word-break:break-all; background:#18181b; padding:6px 8px; border:1px dashed #3f3f46; border-radius:4px;"></p>
+
+            <p style="font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:#71717a; margin:0 0 2px;">Cliente</p>
+            <p id="client-name" class="font-display" style="font-size:1.3rem; font-weight:900; text-transform:uppercase; color:#fff; margin:0; letter-spacing:-0.01em;"></p>
+            
+            <p style="font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:#71717a; margin:12px 0 2px;">ID Usuario</p>
+            <p id="client-id" style="font-size:11px; color:#a1a1aa; font-family:monospace; margin:0; word-break:break-all;"></p>
+          </div>
+
+          <!-- BADGE -->
+          <div id="result-badge" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; box-sizing:border-box;">
+            <div id="result-badge-dot" style="width:6px; height:6px; border-radius:50%; flex-shrink:0;"></div>
+            <span id="result-badge-text" class="font-display" style="font-size:0.85rem; font-weight:900; letter-spacing:0.12em; text-transform:uppercase;"></span>
+          </div>
+
+          <!-- BOTÓN REPETIR -->
+          <button onclick="resetScanner()" class="font-display" style="width:100%; padding:12px; font-weight:900; font-size:0.85rem; letter-spacing:0.12em; text-transform:uppercase; background:#FFD600; color:#0a0a0a; border:none; cursor:pointer; transition:opacity 0.15s;">
+            ESCANEAR SIGUIENTE →
+          </button>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <script>
+    // CONFIGURACIÓN DE SUPABASE
+    const SUPABASE_URL = "https://ywiormfjngrbkatruyya.supabase.co"; 
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3aW9ybWZqbmdyYmthdHJ1eXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwODYwNDAsImV4cCI6MjEwMjY2MjA0MH0.Y9JEA2UjLRBt9rib6e9a_UcFL_tai1P5EFmm03ghwzk";
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let html5QrCode = null;
+
+    function cap(str) {
+      if (!str) return '';
+      return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    }
+
+    async function onScanSuccess(decodedText, decodedResult) {
+      // Detener escáner al detectar código
+      if (html5QrCode) {
+        try {
+          await html5QrCode.stop();
+        } catch (e) {
+          console.warn("Cámara ya detenida o no lista:", e);
+        }
+      }
+
+      // Mostrar el contenido bruto del QR en pantalla
+      document.getElementById('qr-raw-text').textContent = decodedText;
+
+      // Extraer ID si cumple el formato o usar la cadena directa
+      const userId = decodedText.startsWith("MM-USER-") ? decodedText.replace("MM-USER-", "") : decodedText;
+      verificarCliente(userId);
+    }
+
+    async function verificarCliente(userId) {
+      const card = document.getElementById('result-card');
+      const wrapper = document.getElementById('scanner-wrapper');
+      const icon = document.getElementById('result-icon');
+      const status = document.getElementById('result-status');
+      const subtitle = document.getElementById('result-subtitle');
+      const nameEl = document.getElementById('client-name');
+      const idEl = document.getElementById('client-id');
+      const strip = document.getElementById('result-status-strip');
+      
+      const badge = document.getElementById('result-badge');
+      const badgeDot = document.getElementById('result-badge-dot');
+      const badgeText = document.getElementById('result-badge-text');
+
+      wrapper.style.display = 'none';
+      card.style.display = 'block';
+
+      try {
+        let { data: usuario, error } = await _supabase
+          .from('usuarios')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (error || !usuario) {
+          strip.style.background = '#f59e0b';
+          icon.innerHTML = `<i class="fa-solid fa-circle-question" style="color:#f59e0b;"></i>`;
+          status.textContent = "NO ENCONTRADO";
+          status.style.color = "#f59e0b";
+          subtitle.textContent = "Código QR no registrado en el sistema";
+          
+          nameEl.textContent = "USUARIO NO REGISTRADO";
+          idEl.textContent = userId;
+
+          badge.style.background = 'rgba(245,158,11,0.08)';
+          badge.style.border = '1px solid rgba(245,158,11,0.2)';
+          badgeDot.style.background = '#f59e0b';
+          badgeText.style.color = '#f59e0b';
+          badgeText.textContent = 'Sin Datos';
+          return;
+        }
+
+        nameEl.textContent = cap(usuario.nombre);
+        idEl.textContent = usuario.id;
+
+        // Comprobación de estado del pago
+        const activo = usuario.estado_pago && (!usuario.fecha_vencimiento || new Date(usuario.fecha_vencimiento) >= new Date());
+
+        if (activo) {
+          // PAGO ACTIVO Y VÁLIDO
+          strip.style.background = '#22c55e';
+          icon.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#22c55e;"></i>`;
+          status.textContent = "ACCESO PERMITIDO";
+          status.style.color = "#22c55e";
+          subtitle.textContent = "Membresía activa y al día";
+
+          badge.style.background = 'rgba(34,197,94,0.08)';
+          badge.style.border = '1px solid rgba(34,197,94,0.2)';
+          badgeDot.style.background = '#22c55e';
+          badgeText.style.color = '#22c55e';
+          badgeText.textContent = 'Membresía Válida';
+
+        } else {
+          // DENEGADO / VENCIDO / PAGO PENDIENTE
+          strip.style.background = '#ef4444';
+          icon.innerHTML = `<i class="fa-solid fa-circle-xmark" style="color:#ef4444;"></i>`;
+          status.textContent = "ACCESO DENEGADO";
+          status.style.color = "#ef4444";
+          subtitle.textContent = "Membresía vencida o pago pendiente";
+
+          badge.style.background = 'rgba(239,68,68,0.08)';
+          badge.style.border = '1px solid rgba(239,68,68,0.2)';
+          badgeDot.style.background = '#ef4444';
+          badgeText.style.color = '#ef4444';
+          badgeText.textContent = usuario.estado_pago ? 'Membresía Vencida' : 'Pago Pendiente';
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("Error al verificar en la base de datos.");
+      }
+    }
+
+    function resetScanner() {
+      document.getElementById('result-card').style.display = 'none';
+      document.getElementById('scanner-wrapper').style.display = 'block';
+      iniciarCamara();
+    }
+
+    function iniciarCamara() {
+      if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader");
+      }
+
+      const config = { 
+        fps: 10, 
+        qrbox: { width: 180, height: 180 }
+      };
+
+      // Inicia directamente la cámara trasera sin pasar por selectores de la interfaz
+      html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        onScanSuccess
+      ).catch(err => {
+        console.error("Error al iniciar la cámara predeterminada:", err);
+      });
+    }
+
+    window.onload = async () => {
+      iniciarCamara();
+
+      const startTime = Date.now();
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 800 - elapsedTime);
+
+      setTimeout(() => {
+        const loader = document.getElementById('loader-screen');
+        if (loader) {
+          loader.style.opacity = '0';
+          setTimeout(() => loader.remove(), 300);
+        }
+      }, remainingTime);
+    };
+  </script>
+</body>
+</html>
