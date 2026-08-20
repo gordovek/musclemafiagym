@@ -107,7 +107,15 @@
   <script>
     const SUPABASE_URL = "https://ywiormfjngrbkatruyya.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3aW9ybWZqbmdyYmthdHJ1eXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwODYwNDAsImV4cCI6MjE0MjY2MjA0MH0.Y9JEA2UjLRBt9rib6e9a_UcFL_tai1P5EFmm03ghwzk";
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let db;
+
+    function ocultarLoader() {
+      const loader = document.getElementById('loader-screen');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.remove(), 300);
+      }
+    }
 
     async function iniciarSesion() {
       const email = document.getElementById('auth-email').value.trim();
@@ -130,7 +138,6 @@
         const { error } = await db.auth.signInWithPassword({ email, password });
         if (error) throw error;
 
-        // Redirige al inicio tras un acceso exitoso
         window.location.href = 'index.html';
       } catch (e) {
         showError(e.message || 'Error al iniciar sesión.');
@@ -147,21 +154,21 @@
       el.style.display = 'block';
     }
 
-    // Comprobar si ya existe una sesión activa
     window.onload = async () => {
-      const { data: { session } } = await db.auth.getSession();
-      if (session) {
-        window.location.href = 'index.html';
-        return;
-      }
-
-      setTimeout(() => {
-        const loader = document.getElementById('loader-screen');
-        if (loader) {
-          loader.style.opacity = '0';
-          setTimeout(() => loader.remove(), 300);
+      try {
+        if (typeof supabase !== 'undefined') {
+          db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+          const { data: { session } } = await db.auth.getSession();
+          if (session) {
+            window.location.href = 'index.html';
+            return;
+          }
         }
-      }, 500);
+      } catch (e) {
+        console.error("Error al inicializar sesión:", e);
+      } finally {
+        ocultarLoader();
+      }
     };
   </script>
 </body>
